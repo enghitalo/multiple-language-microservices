@@ -1,0 +1,1 @@
+`spring init ./ --force --build 'maven'`
