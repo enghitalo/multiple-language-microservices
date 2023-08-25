@@ -4,6 +4,7 @@ import { validate, IsNotEmpty, IsString } from "class-validator";
 import { plainToClass } from "class-transformer";
 import { LoginDto } from "./login.dto";
 import { generateJwtToken } from "./jwt";
+import { UserRepository } from "./repository";
 
 const app = express();
 app.use(express.json());
@@ -19,27 +20,30 @@ app.post("/auth/login", (req, res) => {
     if (errors.length > 0) {
       return res.status(400).json(errors);
     }
-  });
 
-  const user = userRepository.getByUsername(loginDto.username);
+    const user = userRepository.getByUsername(loginDto.username);
 
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  bcrypt.compare(loginDto.password, user.password).then((isValid) => {
-    if (!isValid) {
+    if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-  });
 
-  const token = generateJwtToken({
-    sub: user.id.toString(),
-    name: user.username,
-    exp: new Date(new Date().getTime() + 60 * 60 * 60 * 1000).toISOString(), // expires in "1h"
+    bcrypt.compare(loginDto.password, user.password).then((isValid) => {
+      if (!isValid) {
+        console.log(user);
+        console.log(loginDto);
+
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const token = generateJwtToken({
+        sub: user?.id?.toString(),
+        name: user?.username,
+        exp: new Date(new Date().getTime() + 60 * 60 * 60 * 1000).toISOString(), // expires in "1h"
+      });
+
+      return res.json({ token });
+    });
   });
-  
-  res.json({ token });
 });
 
 app.listen(3000, () => {

@@ -22,14 +22,14 @@ type JwtPayload = {
 export function generateJwtToken(jwtPayload: JwtPayload): string {
   const jwtHeader: JwtHeader = { alg: "HS256", typ: "JWT" };
 
-  const header = Buffer.from(JSON.stringify(jwtHeader)).toString("base64");
+  const header = Buffer.from(JSON.stringify(jwtHeader)).toString("base64url");
 
-  const payload = Buffer.from(JSON.stringify(jwtPayload)).toString("base64");
+  const payload = Buffer.from(JSON.stringify(jwtPayload)).toString("base64url");
 
   const signature = crypto
     .createHmac("sha256", secretKey)
     .update(header + "." + payload)
-    .digest("base64");
+    .digest("base64url");
 
   return header + "." + payload + "." + signature;
 }

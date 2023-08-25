@@ -8,7 +8,7 @@ const users = [
   }, // Hashed 'admin'
 ];
 
-class UserRepository {
+export class UserRepository {
   constructor() {}
 
   getById(id: string) {}
