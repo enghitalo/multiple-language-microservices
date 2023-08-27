@@ -1,14 +1,20 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors"); // Importe o pacote cors
+import express from "express";
+import http from "http";
+// const socketIo = require("socket.io");
+import { Server } from "socket.io"; // Importe o pacote cors
+import cors from "cors"; // Importe o pacote cors
 
 const app = express();
 
 app.use(express.json());
 
 const server = http.createServer(app);
-const io = socketIo(server, {
+
+interface ServerToClientEvents {
+  statusUpdate: (message: string) => void;
+}
+
+const io = new Server<ServerToClientEvents>(server, {
   cors: { origin: "*" },
 });
 
@@ -17,7 +23,7 @@ const PORT = 3001;
 // Use o middleware cors para permitir as requisições do front-end
 app.use(cors());
 
-app.post("/notification", (req, res) => {
+app.post("/notification", (req: any, res: any) => {
   io.emit("statusUpdate", req.body?.message ?? "Nova atualização de status!");
   res.sendStatus(200);
 });
