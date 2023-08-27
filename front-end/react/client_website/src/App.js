@@ -1,22 +1,31 @@
 import React, { useEffect } from "react";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const socket = io("http://localhost:3001");
+// Criar uma nova conexão SSE
+const sse = new EventSource("http://localhost:3001/sse");
 
 const App = () => {
   useEffect(() => {
-    socket.on("statusUpdate", (data) => {
-      console.log("batata");
-      notify(data);
+    // Configurar o tratamento de eventos SSE recebidos
+    sse.onmessage = (event) => {
+      notify(event.data);
+    };
+
+    // custom events
+    sse.addEventListener("statusUpdate", (event) => {
+      notify(`statusUpdate: ${event.data}`);
     });
 
-    /**
-     * Comment this if it not work
-     */
-    return () => {
-      socket.disconnect();
+    // Lidar com reconexão
+    sse.onerror = (event) => {
+      if (event.readyState === EventSource.CLOSED) {
+        console.log("Connection closed.");
+      } else {
+        console.error("Error:", event);
+      }
+      // sse.close();
     };
   }, []);
 
