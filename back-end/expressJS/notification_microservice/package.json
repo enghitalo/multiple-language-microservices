@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/main.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "npx ts-node src/main.ts"
   },
   "author": "Hitalo Souza",
   "license": "ISC",
