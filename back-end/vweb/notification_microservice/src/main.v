@@ -9,52 +9,60 @@ import rand
 struct App {
 	vweb.Context
 mut:
-	sse_connections []sse.SSEConnection
+	sse_connections shared []sse.SSEConnection
 }
 
 @['/sse'; get]
-fn (mut app App) sse() vweb.Result {
-    println("sse")
+fn (mut app App) sse() ?vweb.Result {
+	println('sse')
 	mut conn := sse.new_connection(app.conn)
 
-    conn.headers['Access-Control-Allow-Origin'] = "*"
+	conn.headers['Access-Control-Allow-Origin'] = '*'
 
 	conn.start() or {
-		println("err: ${err}")
+		println('err: ${err}')
 		return app.server_error(501) // REVIEW
 	}
 
-	app.sse_connections << conn
-
-    // This not work
-	conn.send_message(sse.SSEMessage{
-		id: rand.uuid_v4()
-		event: 'ping' // 'statusUpdate'
-		data: 'SSE client conected'
-		retry: 3000
-	}) or {
-		println("err: ${err}")
-		return app.server_error(501)
+	lock app.sse_connections {
+		app.sse_connections << conn
 	}
 
-	return app.ok('ok') // keep as `text/event-stream`
+	// Remove `for {}`to have a timeout
+	for {
+		time.sleep(60 * time.second)
+	}
+
+	return none
 }
 
 // This not work (there are not connection)
 @['/notification'; post]
-fn (mut app App) notification(message string) vweb.Result {
-
-	for mut conn in app.sse_connections {
-		conn.send_message(sse.SSEMessage{
-			id: rand.uuid_v4()
-			event: 'ping' // 'statusUpdate'
-			data: message
-			retry: 3000
-		}) or { eprintln(err) }
+fn (mut app App) notification() vweb.Result {
+	lock app.sse_connections {
+		for mut conn in app.sse_connections {
+			conn.send_message(sse.SSEMessage{
+				id: rand.uuid_v4()
+				event: 'statusUpdate'
+				data: app.req.data
+				retry: 3000
+			}) or { eprintln(err) }
+			conn.send_message(sse.SSEMessage{
+				id: rand.uuid_v4()
+				event: 'ping'
+				data: '{"time": "${time.now().str()}", "random_id": "${rand.ulid()}"}'
+				retry: 3000
+			}) or { eprintln(err) }
+		}
 	}
+
 	return app.text('Notification received')
 }
 
 fn main() {
-	vweb.run(&App{}, 3001)
+	shared sse_connections := []sse.SSEConnection{}
+
+	vweb.run(&App{
+		sse_connections: sse_connections
+	}, 3001)
 }
