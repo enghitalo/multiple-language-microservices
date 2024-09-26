@@ -1,6 +1,12 @@
 HELP.md
+# Compiled class file
+*.class
+
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -12,6 +18,13 @@ target/
 .settings
 .springBeans
 .sts4-cache
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
 
 ### IntelliJ IDEA ###
 .idea
@@ -31,3 +44,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Sensitive data files
+**/src/main/resources/application.properties
+**/src/main/resources/application.yml
+application.properties
+application.yml
+
+# Miscellaneous
+*.jar
+*.war
